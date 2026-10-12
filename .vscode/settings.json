@@ -2,5 +2,6 @@
     "editor.tabSize": 4,
     "editor.wordWrap": "on",
     "files.autoSave": "afterDelay",
-    "liveServer.settings.defaultBrowser": "chrome"
+    "liveServer.settings.defaultBrowser": "chrome",
+    "java.compile.nullAnalysis.mode": "automatic"
 }
