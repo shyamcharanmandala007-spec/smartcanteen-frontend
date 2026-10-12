@@ -1,0 +1,13 @@
+{
+  "name": "smart-canteen-system",
+  "version": "1.0.0",
+  "description": "SmartCanteen - Online Food Pre-Ordering and Queue Management System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["canteen", "pre-ordering", "queue-management", "token-system"],
+  "author": "Smart Canteen Dev",
+  "license": "MIT"
+}

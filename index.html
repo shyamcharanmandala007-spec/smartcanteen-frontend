@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCanteen – Online Food Pre-Ordering and Queue Management System</title>
+    <meta name="description" content="Online Food Pre-Ordering and Queue Management System for Campus Canteens. Order ahead, track cooking in real time, and pick up using unique digital tokens.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍱</text></svg>">
+</head>
+<body>
+
+    <!-- ======================================================================
+         APP HEADER & ROLE SELECTOR
+         ====================================================================== -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-wrapper">
+                <span class="brand-logo-icon">🍱</span>
+                <div class="brand-text">
+                    <h1>SmartCanteen</h1>
+                    <p>Pre-Order & Queue Management System</p>
+                </div>
+            </div>
+
+            <!-- View Mode Switcher -->
+            <nav class="view-mode-selector" aria-label="Portal Navigation">
+                <button class="view-mode-btn active" data-mode="student" id="btn-view-student">
+                    <span>👨‍🎓 Student Portal</span>
+                </button>
+                <button class="view-mode-btn" data-mode="admin" id="btn-view-admin">
+                    <span>👨‍🍳 Canteen & Kitchen</span>
+                </button>
+                <button class="view-mode-btn" data-mode="split" id="btn-view-split" title="Side-by-side demo: Order on left, Cook on right">
+                    <span>⚡ Live Split Demo</span>
+                </button>
+                <button class="view-mode-btn" data-mode="tv" id="btn-view-tv" title="Big screen token display for cafeteria TV">
+                    <span>📺 Token TV Board</span>
+                </button>
+            </nav>
+
+            <!-- User Session, Wallet & Controls -->
+            <div class="header-actions">
+                <div class="header-wallet-wrap" id="header-wallet-container">
+                    <button class="wallet-badge-btn" id="topup-wallet-btn" title="Click to add ₹200 to test wallet">
+                        <span>💳 Wallet:</span>
+                        <strong id="header-wallet-amount">₹450.00</strong>
+                        <span style="font-size: 0.7rem; opacity: 0.8;">(+Top-up)</span>
+                    </button>
+                </div>
+
+                <div class="user-session-chip">
+                    <span class="user-meta-name" id="header-user-name">Arjun Sharma</span>
+                    <span class="user-meta-role" id="header-user-role">STUDENT</span>
+                </div>
+
+                <button class="btn btn-outline-sm" id="open-auth-modal-btn">Switch / Login</button>
+                <button class="btn btn-outline-sm" id="reset-demo-btn" title="Reset all demo orders and menu">↺ Reset</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================================================
+         MAIN APPLICATION VIEWPORT
+         ====================================================================== -->
+    <main class="main-viewport" id="app-main-viewport">
+
+        <!-- ==================================================================
+             SECTION 1: STUDENT VIEW (STUDENT FLOW)
+             ================================================================== -->
+        <section id="student-app-view" class="student-view-container">
+            
+            <!-- Hero Announcement Banner -->
+            <div class="student-hero-banner">
+                <div class="hero-content">
+                    <h2>Skip the Canteen Rush! ⚡</h2>
+                    <p>Pre-order your favorite fresh meals, pick a convenient time slot, and collect instantly at the express counter using your digital token.</p>
+                    <div class="hero-pills">
+                        <span class="hero-pill-badge">🚀 Zero Wait Times</span>
+                        <span class="hero-pill-badge">🎟️ Digital Pickup Tokens</span>
+                        <span class="hero-pill-badge">🔔 Live Status Notifications</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Filter & Search Bar -->
+            <div class="menu-filter-bar">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="student-search-input" placeholder="Search by food name, description, ingredients..." autocomplete="off">
+                </div>
+
+                <div class="filter-actions-group">
+                    <div class="diet-toggle-group">
+                        <button class="diet-filter-btn active" data-diet="all">All</button>
+                        <button class="diet-filter-btn" data-diet="veg">🟢 Pure Veg</button>
+                        <button class="diet-filter-btn" data-diet="nonveg">🔴 Non-Veg</button>
+                    </div>
+
+                    <select id="student-sort-select" class="sort-select">
+                        <option value="popular">🔥 Most Popular</option>
+                        <option value="price-low">💰 Price: Low to High</option>
+                        <option value="price-high">💎 Price: High to Low</option>
+                        <option value="time-fast">⏱️ Quickest Prep Time</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Category Pills Carousel -->
+            <div class="category-pills-scroll" id="category-pills-container">
+                <!-- Injected dynamically by student.js -->
+            </div>
+
+            <!-- Food Menu Grid -->
+            <div class="food-grid" id="food-menu-grid">
+                <!-- Food cards injected dynamically by student.js -->
+            </div>
+
+            <div id="menu-empty-state" style="display: none; text-align: center; padding: 3rem 0; color: var(--text-muted);">
+                <p style="font-size: 1.5rem;">🍽️</p>
+                <p>No dishes found matching your current search or diet filter.</p>
+            </div>
+
+            <!-- Live Order Tracking Section (Matches Flowchart Order Status Flow) -->
+            <section class="tracking-section" id="student-tracking-section">
+                <div class="section-headline">
+                    <div>
+                        <h3>Live Order Status & Token</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Real-time progress following the 5-step canteen kitchen lifecycle</p>
+                    </div>
+                </div>
+
+                <div id="student-live-tracking-container">
+                    <!-- Live tracking card injected dynamically by student.js -->
+                </div>
+            </section>
+
+            <!-- Past Pre-Orders History -->
+            <section class="tracking-section">
+                <div class="section-headline">
+                    <div>
+                        <h3>My Recent Pre-Orders</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">View past tokens, invoices, and leave ratings</p>
+                    </div>
+                </div>
+                <div id="student-order-history-list">
+                    <!-- Orders history cards injected dynamically -->
+                </div>
+            </section>
+
+        </section>
+
+        <!-- ==================================================================
+             SECTION 2: ADMIN & CANTEEN STAFF VIEW (ADMIN FLOW)
+             ================================================================== -->
+        <section id="admin-app-view" class="admin-view-container" style="display: none;">
+            
+            <div class="admin-dashboard-hero">
+                <div class="admin-header-title">
+                    <div>
+                        <h2>Canteen Operations & Kitchen Display (KDS)</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Accept incoming orders, coordinate cooking, and manage the campus menu</p>
+                    </div>
+
+                    <!-- Admin Sub-Navigation Tabs -->
+                    <div class="admin-nav-tabs">
+                        <button class="admin-nav-tab active" data-tab="orders">📋 Orders Queue</button>
+                        <button class="admin-nav-tab" data-tab="menu">🍲 Manage Menu</button>
+                        <button class="admin-nav-tab" data-tab="reports">📊 Sales & Reports</button>
+                    </div>
+                </div>
+
+                <!-- KPI Metric Cards Grid -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap pending">📋</div>
+                        <div class="kpi-info">
+                            <span>Pending Acceptance</span>
+                            <strong id="admin-stat-pending">0</strong>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap kitchen">🍳</div>
+                        <div class="kpi-info">
+                            <span>Cooking in Kitchen</span>
+                            <strong id="admin-stat-kitchen">0</strong>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap ready">🍽️</div>
+                        <div class="kpi-info">
+                            <span>Ready for Pickup</span>
+                            <strong id="admin-stat-ready">0</strong>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap completed">🛍️</div>
+                        <div class="kpi-info">
+                            <span>Completed Today</span>
+                            <strong id="admin-stat-completed">0</strong>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap revenue">💰</div>
+                        <div class="kpi-info">
+                            <span>Today's Sales</span>
+                            <strong id="admin-stat-revenue">₹0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 1: Orders Queue Section -->
+            <div id="admin-orders-section">
+                <div class="kitchen-queue-header">
+                    <div class="queue-filter-pills">
+                        <button class="queue-filter-pill active" data-filter="ALL">All Orders</button>
+                        <button class="queue-filter-pill" data-filter="PENDING">🟡 Pending Acceptance</button>
+                        <button class="queue-filter-pill" data-filter="IN_KITCHEN">🍳 In Kitchen (Cooking)</button>
+                        <button class="queue-filter-pill" data-filter="READY">🟢 Ready for Pickup</button>
+                        <button class="queue-filter-pill" data-filter="COMPLETED">🟣 Completed</button>
+                    </div>
+
+                    <input type="text" id="admin-token-search" class="token-search-input" placeholder="Quick Token / Order # lookup (e.g. T-101)">
+                </div>
+
+                <div class="kitchen-orders-grid" id="kitchen-orders-grid">
+                    <!-- Kitchen cards injected by admin.js -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Menu Management (CRUD) Section -->
+            <div id="admin-menu-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h3 style="font-size: 1.2rem; font-weight: 800;">Campus Food Court Menu Items</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Add new dishes, update prices, change stock availability or delete items</p>
+                    </div>
+                    <button class="btn btn-primary" id="open-add-item-modal-btn">
+                        <span>➕ Add New Menu Item</span>
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Item Details</th>
+                                <th>Price</th>
+                                <th>Prep Time</th>
+                                <th>Stock Status</th>
+                                <th>Student Rating</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-menu-table-body">
+                            <!-- Populated dynamically by admin.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Sales Reports & Analytics Section -->
+            <div id="admin-reports-section" style="display: none;">
+                <div class="reports-grid">
+                    
+                    <!-- Hourly Order Peak Distribution -->
+                    <div class="report-panel">
+                        <h4>Hourly Order Volume (Peak Campus Rush)</h4>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1rem;">Analysis of busy periods during breakfast, lunch break, and evening snacks.</p>
+                        <div id="rep-hourly-chart"></div>
+                    </div>
+
+                    <!-- Top Selling Items -->
+                    <div class="report-panel">
+                        <h4>Top Selling Dishes</h4>
+                        <div id="rep-top-items-list"></div>
+                    </div>
+
+                </div>
+
+                <!-- Financial Metrics Breakdown -->
+                <div class="kpi-grid" style="margin-bottom: 2rem;">
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap revenue">📈</div>
+                        <div class="kpi-info">
+                            <span>Total Gross Sales</span>
+                            <strong id="rep-total-sales">₹0.00</strong>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap completed">🧾</div>
+                        <div class="kpi-info">
+                            <span>Total Invoices Paid</span>
+                            <strong id="rep-total-orders">0</strong>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrap ready">🎯</div>
+                        <div class="kpi-info">
+                            <span>Average Ticket Size</span>
+                            <strong id="rep-avg-ticket">₹0.00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Ratings & Feedback Wall -->
+                <div class="report-panel">
+                    <h4>Student Reviews & Food Feedback</h4>
+                    <div class="feedback-grid" id="rep-feedback-wall">
+                        <!-- Populated dynamically by admin.js -->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================================================================
+             SECTION 3: BIG SCREEN TOKEN TV BOARD (CAFETERIA TV VIEW)
+             ================================================================== -->
+        <section id="tv-display-view" style="display: none;">
+            <div class="tv-display-wrapper">
+                <div class="tv-header">
+                    <h2>CAFETERIA LIVE QUEUE DISPLAY</h2>
+                    <p>Please proceed to Counter #2 when your token number appears under <strong>READY FOR PICKUP</strong></p>
+                    <button class="btn btn-outline-sm" id="refresh-tv-btn" style="margin-top: 0.5rem;">↺ Refresh Screen</button>
+                </div>
+
+                <div class="tv-board-columns">
+                    <!-- Column 1: Now Preparing -->
+                    <div class="tv-column">
+                        <div class="tv-column-title preparing">
+                            <span>🍳 NOW PREPARING</span>
+                        </div>
+                        <div class="tv-tokens-grid" id="tv-preparing-tokens">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Ready for Pickup -->
+                    <div class="tv-column">
+                        <div class="tv-column-title ready">
+                            <span>🍽️ READY FOR PICKUP</span>
+                        </div>
+                        <div class="tv-tokens-grid" id="tv-ready-tokens">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ======================================================================
+         FLOATING CART BUTTON & SLIDE-OUT CART DRAWER
+         ====================================================================== -->
+    <button class="floating-cart-btn" id="open-cart-btn" aria-label="Open Cart">
+        <span>🛒 Cart</span>
+        <span class="floating-cart-badge" id="cart-floating-badge" style="display: none;">0</span>
+    </button>
+
+    <div class="cart-overlay" id="cart-overlay"></div>
+
+    <aside class="cart-drawer" id="cart-drawer">
+        <div class="cart-drawer-header">
+            <h3>Your Order Tray <span id="cart-header-count" style="font-size: 0.9rem; color: var(--text-muted);">(0 items)</span></h3>
+            <button class="cart-close-btn" id="close-cart-btn">&times;</button>
+        </div>
+
+        <div class="cart-drawer-body">
+            <div id="cart-empty-message" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">🧺</span>
+                <p>Your order tray is currently empty.</p>
+                <p style="font-size: 0.8rem;">Browse the delicious menu and add items to place your pre-order!</p>
+            </div>
+
+            <div class="cart-items-container" id="cart-items-container">
+                <!-- Injected dynamically by student.js -->
+            </div>
+
+            <div id="cart-summary-box" style="display: none;">
+                <!-- Select Pickup Time (Core Flowchart Requirement) -->
+                <div class="cart-section-title">
+                    <span>⏰ Choose Pickup Time Slot</span>
+                </div>
+                <div class="pickup-slots-grid" id="pickup-slots-container">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <div id="custom-pickup-time-wrapper" style="display: none; margin-bottom: 1rem;">
+                    <label style="font-size: 0.75rem; color: var(--text-muted);">Specify desired pickup time:</label>
+                    <input type="time" id="custom-pickup-time-input" class="custom-time-input" value="13:30">
+                </div>
+
+                <!-- Special Cooking Instructions -->
+                <div class="cart-section-title">
+                    <span>📝 Kitchen Special Instructions</span>
+                </div>
+                <textarea id="order-special-notes" class="special-notes-input" rows="2" placeholder="e.g. Extra spicy, no onions, keep sauce separate..."></textarea>
+            </div>
+        </div>
+
+        <div class="cart-drawer-footer">
+            <div class="bill-breakdown-row">
+                <span>Subtotal</span>
+                <span id="cart-subtotal-val">₹0.00</span>
+            </div>
+            <div class="bill-breakdown-row">
+                <span>Canteen Service / GST (5%)</span>
+                <span id="cart-tax-val">₹0.00</span>
+            </div>
+            <div class="bill-total-row">
+                <span>Total Amount</span>
+                <span id="cart-total-val">₹0.00</span>
+            </div>
+            <button class="btn btn-primary btn-lg" id="proceed-checkout-btn" style="width: 100%;">
+                <span>Proceed to Payment →</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ======================================================================
+         MODAL 1: PAYMENT GATEWAY (MAKE PAYMENT STEP)
+         ====================================================================== -->
+    <div class="modal-backdrop" id="payment-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>Make Payment & Confirm Order</h3>
+                <button class="modal-close-btn" onclick="studentApp.closePaymentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: var(--bg-surface); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Total Payable:</span>
+                        <h4 id="modal-pay-total" style="font-size: 1.4rem; font-weight: 800; color: #fff;">₹0.00</h4>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);" id="modal-pay-count">0 items</span>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);" id="modal-pay-slot">Slot: ASAP</div>
+                    </div>
+                </div>
+
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.6rem;">
+                    Select Payment Method:
+                </label>
+
+                <div class="payment-options-grid">
+                    <div class="payment-option-card active" data-method="UPI">
+                        <span class="pay-icon">📱</span>
+                        <span class="pay-title">UPI QR Code</span>
+                        <span style="font-size: 0.68rem; color: var(--text-muted);">GPay, PhonePe, Paytm</span>
+                    </div>
+                    <div class="payment-option-card" data-method="WALLET">
+                        <span class="pay-icon">💳</span>
+                        <span class="pay-title">Campus Wallet</span>
+                        <span style="font-size: 0.68rem; color: var(--text-muted);">Smart Student Card</span>
+                    </div>
+                    <div class="payment-option-card" data-method="CARD">
+                        <span class="pay-icon">💳</span>
+                        <span class="pay-title">Debit/Credit Card</span>
+                        <span style="font-size: 0.68rem; color: var(--text-muted);">Visa, Mastercard</span>
+                    </div>
+                    <div class="payment-option-card" data-method="CASH">
+                        <span class="pay-icon">💵</span>
+                        <span class="pay-title">Pay at Counter</span>
+                        <span style="font-size: 0.68rem; color: var(--text-muted);">Cash on Pickup</span>
+                    </div>
+                </div>
+
+                <!-- Method Detail 1: UPI -->
+                <div id="pay-method-upi-view">
+                    <div class="qr-code-box">
+                        <svg viewBox="0 0 100 100" class="qr-mock-img">
+                            <rect width="100" height="100" fill="#ffffff" />
+                            <rect x="10" y="10" width="25" height="25" fill="#000" />
+                            <rect x="15" y="15" width="15" height="15" fill="#fff" />
+                            <rect x="19" y="19" width="7" height="7" fill="#000" />
+                            <rect x="65" y="10" width="25" height="25" fill="#000" />
+                            <rect x="70" y="15" width="15" height="15" fill="#fff" />
+                            <rect x="74" y="19" width="7" height="7" fill="#000" />
+                            <rect x="10" y="65" width="25" height="25" fill="#000" />
+                            <rect x="15" y="70" width="15" height="15" fill="#fff" />
+                            <rect x="19" y="74" width="7" height="7" fill="#000" />
+                            <rect x="42" y="12" width="6" height="15" fill="#000" />
+                            <rect x="52" y="20" width="8" height="25" fill="#000" />
+                            <rect x="40" y="45" width="12" height="12" fill="#000" />
+                            <rect x="65" y="55" width="20" height="8" fill="#000" />
+                            <rect x="65" y="70" width="10" height="20" fill="#000" />
+                            <rect x="42" y="72" width="14" height="14" fill="#000" />
+                        </svg>
+                    </div>
+                    <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                        Scan and pay using any UPI app (GPay / PhonePe / BHIM)
+                    </p>
+                </div>
+
+                <!-- Method Detail 2: Campus Wallet -->
+                <div id="pay-method-wallet-view" style="display: none; background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Available Student Wallet Balance:</span>
+                    <h3 id="pay-modal-wallet-balance" style="font-size: 1.5rem; color: #34d399; margin: 0.3rem 0;">₹450.00</h3>
+                    <p id="pay-modal-wallet-warning" style="display: none; color: var(--danger); font-size: 0.8rem;">
+                        ⚠️ Insufficient balance! Please top up or choose another payment method.
+                    </p>
+                </div>
+
+                <!-- Method Detail 3: Card -->
+                <div id="pay-method-card-view" style="display: none;">
+                    <div class="form-group">
+                        <label>Card Number</label>
+                        <input type="text" class="form-input" placeholder="4111 •••• •••• 9821" value="4532 8812 3901 4410">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Expiry (MM/YY)</label>
+                            <input type="text" class="form-input" placeholder="12/28" value="09/27">
+                        </div>
+                        <div class="form-group">
+                            <label>CVV</label>
+                            <input type="password" class="form-input" placeholder="•••" value="842">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Method Detail 4: Cash -->
+                <div id="pay-method-cash-view" style="display: none; text-align: center; padding: 1.5rem 0; color: var(--text-muted);">
+                    <p>💡 You can pay with cash or card directly at Counter #2 when collecting your order with your pickup token.</p>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button class="btn btn-primary btn-lg" id="confirm-payment-btn" style="width: 100%;">
+                        <span>Pay & Generate Pickup Token →</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL 2: ORDER ID & TOKEN GENERATED (FLOWCHART STEP)
+         ====================================================================== -->
+    <div class="modal-backdrop" id="order-token-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>Order Confirmed! 🎉</h3>
+                <button class="modal-close-btn" id="close-token-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="token-celebration-hero">
+                    <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">Your Express Pickup Token</span>
+                    <div class="token-big-badge" id="confirm-token-badge">T-105</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Order ID: <strong id="confirm-order-id" style="color: #fff;">ORD-9412</strong></p>
+                </div>
+
+                <div style="background: var(--bg-surface); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.4rem;">
+                        <span style="color: var(--text-muted);">Pickup Slot:</span>
+                        <strong id="confirm-pickup-slot" style="color: var(--primary);">ASAP</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.4rem;">
+                        <span style="color: var(--text-muted);">Amount Paid:</span>
+                        <strong id="confirm-order-amount" style="color: var(--success);">₹0.00</strong>
+                    </div>
+                    <div id="confirm-order-items-list" style="border-top: 1px solid var(--border-subtle); margin-top: 0.6rem; padding-top: 0.6rem; font-size: 0.8rem; color: var(--text-muted);">
+                        <!-- Items summary -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="btn btn-primary" id="track-order-modal-btn" style="flex: 1;">
+                        <span>Track Cooking Live →</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL 3: MANAGE FOOD MENU ITEM (ADD / EDIT)
+         ====================================================================== -->
+    <div class="modal-backdrop" id="menu-item-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3 id="menu-modal-title">Add Menu Item</h3>
+                <button class="modal-close-btn" id="close-menu-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="menu-item-form">
+                    <div class="form-group">
+                        <label>Item Name *</label>
+                        <input type="text" name="itemName" class="form-input" required placeholder="e.g. Paneer Tikka Roll">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <select name="itemCategory" class="form-select">
+                                <option value="breakfast">Breakfast</option>
+                                <option value="lunch">Lunch & Meals</option>
+                                <option value="snacks" selected>Snacks & Fast Food</option>
+                                <option value="beverages">Beverages</option>
+                                <option value="desserts">Desserts & Sweets</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price (₹) *</label>
+                            <input type="number" name="itemPrice" class="form-input" required min="1" step="1" placeholder="e.g. 75">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prep Time (Minutes)</label>
+                            <input type="number" name="itemPrepTime" class="form-input" value="8" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Calories (kcal)</label>
+                            <input type="number" name="itemCalories" class="form-input" value="320">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dietary Type</label>
+                        <select name="itemVeg" class="form-select">
+                            <option value="veg">🟢 Pure Vegetarian</option>
+                            <option value="nonveg">🔴 Non-Vegetarian</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" name="itemImage" class="form-input" placeholder="https://images.unsplash.com/...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Short Description</label>
+                        <textarea name="itemDesc" class="form-textarea" rows="2" placeholder="Briefly describe the taste and ingredients..."></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                        <button type="button" class="btn btn-outline" onclick="adminApp.closeMenuModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL 4: RATING & FEEDBACK (FLOWCHART STEP)
+         ====================================================================== -->
+    <div class="modal-backdrop" id="feedback-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>Rate Your Meal Experience ⭐</h3>
+                <button class="modal-close-btn" id="close-feedback-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                    How was your order with Token <strong id="feedback-modal-token" style="color: #fff;">#T-xxx</strong>?
+                </p>
+
+                <div class="star-rating-row">
+                    <button class="star-btn active" data-value="1">★</button>
+                    <button class="star-btn active" data-value="2">★</button>
+                    <button class="star-btn active" data-value="3">★</button>
+                    <button class="star-btn active" data-value="4">★</button>
+                    <button class="star-btn active" data-value="5">★</button>
+                </div>
+
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    What did you enjoy most?
+                </label>
+                <div class="feedback-tag-chips">
+                    <span class="feedback-tag-chip active">Hot & Fresh</span>
+                    <span class="feedback-tag-chip active">Quick Service</span>
+                    <span class="feedback-tag-chip">Delicious Taste</span>
+                    <span class="feedback-tag-chip">Generous Quantity</span>
+                    <span class="feedback-tag-chip">Neat Packaging</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Comments / Kitchen Feedback</label>
+                    <textarea id="feedback-comment-input" class="form-textarea" rows="3" placeholder="Tell the chef what you loved or how we can improve..."></textarea>
+                </div>
+
+                <div style="margin-top: 1.25rem;">
+                    <button class="btn btn-primary btn-lg" id="submit-feedback-btn" style="width: 100%;">
+                        <span>Submit Rating & Review</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL 5: AUTHENTICATION / LOGIN / REGISTER
+         ====================================================================== -->
+    <div class="modal-backdrop" id="auth-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>SmartCanteen Access</h3>
+                <button class="modal-close-btn" id="close-auth-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; background: var(--bg-surface); padding: 0.25rem; border-radius: var(--radius-full);">
+                    <button class="btn btn-outline-sm auth-tab-btn active" data-target="login" style="flex: 1; border: none;">Sign In</button>
+                    <button class="btn btn-outline-sm auth-tab-btn" data-target="register" style="flex: 1; border: none;">New Student Register</button>
+                </div>
+
+                <!-- 1-Click Fast Fill for Testing -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+                    <button type="button" class="btn btn-outline-xs" id="quick-fill-student" style="flex: 1;">👨‍🎓 Fill Demo Student</button>
+                    <button type="button" class="btn btn-outline-xs" id="quick-fill-admin" style="flex: 1;">👨‍🍳 Fill Demo Admin</button>
+                </div>
+
+                <!-- Sign In Form -->
+                <form id="auth-login-form">
+                    <div class="form-group">
+                        <label>Login As</label>
+                        <select name="authRole" class="form-select">
+                            <option value="student">Student / Campus Member</option>
+                            <option value="admin">Canteen Kitchen Staff / Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="authEmail" class="form-input" required value="student@campus.edu">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="authPassword" class="form-input" required value="student123">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">
+                        Sign In →
+                    </button>
+                </form>
+
+                <!-- Student Register Form -->
+                <form id="auth-register-form" style="display: none;">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" name="regName" class="form-input" required placeholder="e.g. Priya Sharma">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Student Roll ID *</label>
+                            <input type="text" name="regStudentId" class="form-input" required placeholder="CS-2025-081">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <input type="tel" name="regPhone" class="form-input" required placeholder="+91 98765 00000">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Campus Email *</label>
+                        <input type="email" name="regEmail" class="form-input" required placeholder="student@campus.edu">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password *</label>
+                        <input type="password" name="regPassword" class="form-input" required placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">
+                        Register Account (+₹300 Wallet Bonus)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- Application Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/student.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
